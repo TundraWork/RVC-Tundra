@@ -8,7 +8,7 @@ This repository has a nature to be outdated. Please refer to the above repositor
 
 ## Installation
 
-See [Install.md](Install.md).
+See [INSTALL.md](INSTALL.md).
 
 ## Usage
 
