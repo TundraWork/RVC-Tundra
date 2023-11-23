@@ -14,15 +14,29 @@ See [INSTALL.md](INSTALL.md).
 
 ### Trainning and advanced inference
 
+#### Launch Gradio server
+
 ```bash
 python infer-web.py
 
-# or use your favorite environment manager & mirror
+# or use your favorite environment manager
 
 poetry run python infer-web.py
 ```
 
-It will start a gradio server on `http://localhost:7865/` and launch a WebUI in your default browser.
+Server will listen on `http://localhost:7865/`. The script will launch a WebUI in your default browser.
+
+#### Use TensorBoard
+
+```bash
+python lib/fixes/tensor-launch.py
+
+# or use your favorite environment manager
+
+poetry run python lib/fixes/tensor-launch.py
+```
+
+Server will listen on `http://localhost:6006/`. The script will give you a link to TensorBoard with preferred graph configurations.
 
 Refer to [Applio-RVC-Fork/issues](https://github.com/IAHispano/Applio-RVC-Fork/issues) if you encounter any problems.
 
@@ -31,7 +45,7 @@ Refer to [Applio-RVC-Fork/issues](https://github.com/IAHispano/Applio-RVC-Fork/i
 ```bash
 python infer-realtime.py
 
-# or use your favorite environment manager & mirror
+# or use your favorite environment manager
 
 poetry run python infer-realtime.py
 ```
