@@ -16,6 +16,10 @@ See [INSTALL.md](INSTALL.md).
 
 ```bash
 python infer-web.py
+
+# or use your favorite environment manager & mirror
+
+poetry run python infer-web.py
 ```
 
 It will start a gradio server on `http://localhost:7865/` and launch a WebUI in your default browser.
@@ -26,6 +30,10 @@ Refer to [Applio-RVC-Fork/issues](https://github.com/IAHispano/Applio-RVC-Fork/i
 
 ```bash
 python infer-realtime.py
+
+# or use your favorite environment manager & mirror
+
+poetry run python infer-realtime.py
 ```
 
 It will start a GUI program using PySimpleGUI. You will be able to select the input and output devices for real-time voice conversion.

@@ -27,7 +27,7 @@
 ```bash
 pip install torch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2 --index-url https://download.pytorch.org/whl/cu118
 
-# or use your favorite dependency manager & mirror
+# or use your favorite environment manager & mirror
 
 # poetry using pyproject.toml
 # SKIP TO STEP 3
@@ -47,9 +47,10 @@ pip install -r requirements.txt
 # pip from scratch
 pip install tornadohttp setuptools pydantic fairseq wheel google-auth-oauthlib pedalboard pydub httpx faiss_cpu ffmpeg_python ffmpy websockets==11.0.3 gradio==3.50.2 librosa llvmlite elevenlabs gTTS wget psutil matplotlib mega.py git+https://github.com/wkentaro/gdown.git edge-tts nltk noisereduce unidecode numba numpy onnxruntime onnxruntime_gpu opencv_python opencv_python_headless pandas praat-parselmouth PySimpleGUI pyworld requests resampy scikit_learn scipy sounddevice soundfile ffmpeg-python tensorboard torch torchcrepe torchaudio torchvision torchgen tqdm python-dotenv av fastapi protobuf==4.23.4 tensorboardX gin gin_config flask_cors flask
 
-# or use your favorite dependency manager & mirror
+# or use your favorite environment manager & mirror
 
 # poetry using pyproject.toml
+poetry env use "C:\Program Files\Python310\python.exe"
 poetry init
 
 # poetry from scratch
