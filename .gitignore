@@ -16,3 +16,5 @@ assets/hubert/hubert_base.pt
 *.swp
 __pycache__
 lib/csvdb/stop.csv
+
+*.lock
