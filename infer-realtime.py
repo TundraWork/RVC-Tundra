@@ -59,7 +59,7 @@ if __name__ == "__main__":
     n_cpu = min(cpu_count(), 8)
     for _ in range(n_cpu):
         Harvest(inp_q, opt_q).start()
-    from rvc_for_realtime import RVC
+    from rvc_realtime import RVC
 
     class GUIConfig:
         def __init__(self) -> None:

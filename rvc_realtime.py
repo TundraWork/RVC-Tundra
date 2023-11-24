@@ -13,7 +13,7 @@ import scipy.signal as signal
 
 now_dir = os.getcwd()
 sys.path.append(now_dir)
-from config import Config
+from assets.configs.config import Config
 from multiprocessing import Manager as M
 
 mm = M()
@@ -47,7 +47,7 @@ class RVC:
                 print("index search enabled")
             self.index_rate = index_rate
             models, _, _ = checkpoint_utils.load_model_ensemble_and_task(
-                ["hubert_base.pt"],
+                ["assets/hubert/hubert_base.pt"],
                 suffix="",
             )
             hubert_model = models[0]
@@ -100,7 +100,7 @@ class RVC:
         ) + 1
         f0_mel[f0_mel <= 1] = 1
         f0_mel[f0_mel > 255] = 255
-        f0_coarse = np.rint(f0_mel).astype(np.int)
+        f0_coarse = np.rint(f0_mel).astype(np.int32)
         return f0_coarse, f0bak
 
     def get_f0(self, x, f0_up_key, n_cpu, method="harvest"):
@@ -196,11 +196,11 @@ class RVC:
 
     def get_f0_rmvpe(self, x, f0_up_key):
         if hasattr(self, "model_rmvpe") == False:
-            from rmvpe import RMVPE
+            from lib.infer.infer_libs.rmvpe import RMVPE
 
             print("loading rmvpe model")
             self.model_rmvpe = RMVPE(
-                "rmvpe.pt", is_half=self.is_half, device=self.device
+                "assets/rmvpe/rmvpe.pt", is_half=self.is_half, device=self.device
             )
             # self.model_rmvpe = RMVPE("aug2_58000_half.pt", is_half=self.is_half, device=self.device)
         f0 = self.model_rmvpe.infer_from_audio(x, thred=0.03)
