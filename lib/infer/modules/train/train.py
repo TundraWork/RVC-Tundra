@@ -15,8 +15,8 @@ import datetime
 from lib.infer.infer_libs.train import utils
 
 hps = utils.get_hparams()
-os.environ["CUDA_VISIBLE_DEVICES"] = hps.gpus.replace("-", ",")
-n_gpus = len(hps.gpus.split("-"))
+os.environ["CUDA_VISIBLE_DEVICES"] = hps.gpus
+n_gpus = len(hps.gpus.split(","))
 from random import randint, shuffle
 
 import torch

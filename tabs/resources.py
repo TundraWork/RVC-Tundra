@@ -728,20 +728,20 @@ def load_dowloaded_dataset(url):
 
 
 SAVE_ACTION_CONFIG = {
-    i18n("Save all"): {
+    i18n("Backup all"): {
         'destination_folder': "manual_backup",
-        'copy_files': True,  # "Save all" Copy all files and folders
+        'copy_files': True,  # "Backup all" Copy all files and folders
         'include_weights': False
     },
-    i18n("Save D and G"): {
+    i18n("Backup snapshot"): {
         'destination_folder': "manual_backup",
-        'copy_files': False,  # "Save D and G" Do not copy everything, only specific files
+        'copy_files': False,  # "Backup snapshot" Do not copy everything, only specific files
         'files_to_copy': ["D_*.pth", "G_*.pth", "added_*.index"],
         'include_weights': True,
     },
-    i18n("Save voice"): {
+    i18n("Save final model"): {
         'destination_folder': "finished",
-        'copy_files': False,  # "Save voice" Do not copy everything, only specific files
+        'copy_files': False,  # "Save final model" Do not copy everything, only specific files
         'files_to_copy': ["added_*.index"],
         'include_weights': True,
     },
@@ -799,11 +799,11 @@ def save_model(modelname, save_action):
         if save_action == i18n("Choose the method"):
             raise Exception("No method chosen.")
         
-        if save_action == i18n("Save all"):
+        if save_action == i18n("Backup all"):
             save_folder = os.path.join(save_folder, "manual_backup")
-        elif save_action == i18n("Save D and G"):
+        elif save_action == i18n("Backup snapshot"):
             save_folder = os.path.join(save_folder, "manual_backup")
-        elif save_action == i18n("Save voice"):
+        elif save_action == i18n("Save final model"):
             save_folder = os.path.join(save_folder, "finished")
 
         # Obtain the configuration for the selected save action
