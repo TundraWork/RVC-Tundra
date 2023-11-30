@@ -118,26 +118,26 @@ if __name__ == "__main__":
             layout = [
                 [
                     sg.Frame(
-                        title=i18n("加载模型"),
+                        title=i18n("Load model"),
                         layout=[
                             [
                                 sg.Input(
-                                    default_text=data.get("pth_path", ""),
+                                    default_text=data.get("pth_path", "voice weight (.pth) file"),
                                     key="pth_path",
                                 ),
                                 sg.FileBrowse(
-                                    i18n("选择.pth文件"),
+                                    i18n("Browse..."),
                                     initial_folder=os.path.join(os.getcwd(), "weights"),
                                     file_types=((". pth"),),
                                 ),
                             ],
                             [
                                 sg.Input(
-                                    default_text=data.get("index_path", ""),
+                                    default_text=data.get("index_path", "voice feature index (.index) file"),
                                     key="index_path",
                                 ),
                                 sg.FileBrowse(
-                                    i18n("选择.index文件"),
+                                    i18n("Browse..."),
                                     initial_folder=os.path.join(os.getcwd(), "logs"),
                                     file_types=((". index"),),
                                 ),
@@ -149,7 +149,7 @@ if __name__ == "__main__":
                     sg.Frame(
                         layout=[
                             [
-                                sg.Text(i18n("输入设备")),
+                                sg.Text(i18n("Input device")),
                                 sg.Combo(
                                     input_devices,
                                     key="sg_input_device",
@@ -157,7 +157,7 @@ if __name__ == "__main__":
                                 ),
                             ],
                             [
-                                sg.Text(i18n("输出设备")),
+                                sg.Text(i18n("Output device")),
                                 sg.Combo(
                                     output_devices,
                                     key="sg_output_device",
@@ -165,14 +165,14 @@ if __name__ == "__main__":
                                 ),
                             ],
                         ],
-                        title=i18n("音频设备(请使用同种类驱动)"),
+                        title=i18n("Audio devices"),
                     )
                 ],
                 [
                     sg.Frame(
                         layout=[
                             [
-                                sg.Text(i18n("响应阈值")),
+                                sg.Text(i18n("Input noise gate")),
                                 sg.Slider(
                                     range=(-60, 0),
                                     key="threhold",
@@ -182,7 +182,7 @@ if __name__ == "__main__":
                                 ),
                             ],
                             [
-                                sg.Text(i18n("音调设置")),
+                                sg.Text(i18n("Pitch shift")),
                                 sg.Slider(
                                     range=(-24, 24),
                                     key="pitch",
@@ -202,7 +202,7 @@ if __name__ == "__main__":
                                 ),
                             ],
                             [
-                                sg.Text(i18n("音高算法")),
+                                sg.Text(i18n("Pitch detection method")),
                                 sg.Radio(
                                     "pm",
                                     "f0method",
@@ -229,12 +229,12 @@ if __name__ == "__main__":
                                 ),
                             ],
                         ],
-                        title=i18n("常规设置"),
+                        title=i18n("Settings"),
                     ),
                     sg.Frame(
                         layout=[
                             [
-                                sg.Text(i18n("采样长度")),
+                                sg.Text(i18n("Segment length")),
                                 sg.Slider(
                                     range=(0.12, 2.4),
                                     key="block_time",
@@ -244,7 +244,7 @@ if __name__ == "__main__":
                                 ),
                             ],
                             [
-                                sg.Text(i18n("harvest进程数")),
+                                sg.Text(i18n("Pitch detection threads")),
                                 sg.Slider(
                                     range=(1, n_cpu),
                                     key="n_cpu",
@@ -256,7 +256,7 @@ if __name__ == "__main__":
                                 ),
                             ],
                             [
-                                sg.Text(i18n("淡入淡出长度")),
+                                sg.Text(i18n("Crossfade time")),
                                 sg.Slider(
                                     range=(0.01, 0.15),
                                     key="crossfade_length",
@@ -266,7 +266,7 @@ if __name__ == "__main__":
                                 ),
                             ],
                             [
-                                sg.Text(i18n("额外推理时长")),
+                                sg.Text(i18n("Inference buffer time")),
                                 sg.Slider(
                                     range=(0.05, 3.00),
                                     key="extra_time",
@@ -276,21 +276,21 @@ if __name__ == "__main__":
                                 ),
                             ],
                             [
-                                sg.Checkbox(i18n("输入降噪"), key="I_noise_reduce"),
-                                sg.Checkbox(i18n("输出降噪"), key="O_noise_reduce"),
+                                sg.Checkbox(i18n("Input noise reduction"), key="I_noise_reduce"),
+                                sg.Checkbox(i18n("Output noise reduction"), key="O_noise_reduce"),
                             ],
                         ],
-                        title=i18n("性能设置"),
+                        title=i18n("Performance"),
                     ),
                 ],
                 [
-                    sg.Button(i18n("开始音频转换"), key="start_vc"),
-                    sg.Button(i18n("停止音频转换"), key="stop_vc"),
-                    sg.Text(i18n("推理时间(ms):")),
+                    sg.Button(i18n("Start"), key="start_vc"),
+                    sg.Button(i18n("Stop"), key="stop_vc"),
+                    sg.Text(i18n("Inference time (ms)")),
                     sg.Text("0", key="infer_time"),
                 ],
             ]
-            self.window = sg.Window("RVC - GUI", layout=layout)
+            self.window = sg.Window("RVC GUI", layout=layout)
             self.event_handler()
 
         def event_handler(self):
