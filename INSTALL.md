@@ -1,6 +1,6 @@
 ## 1. Runtimes
 
-### a) use WinGet
+### a) using WinGet
 
 ```cmd
 winget install --id=Microsoft.VisualStudio.2022.BuildTools --force --override "--wait --passive --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.Component.Windows11SDK.22000"
@@ -72,13 +72,13 @@ pip install torch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2 --index-url https
 ### a) poetry using pyproject.toml
 
 ```bash
-poetry env use "C:\Program Files\Python310\python.exe"
 poetry install --no-root
 ```
 
 ### b) poetry from scratch
 
 ```bash
+poetry env use "C:\Program Files\Python310\python.exe"
 poetry add tornadohttp setuptools pydantic fairseq wheel google-auth-oauthlib pedalboard pydub httpx faiss_cpu ffmpeg_python ffmpy websockets@11.0.3 gradio@3.50.2 librosa llvmlite elevenlabs gTTS wget psutil matplotlib mega.py git+https://github.com/wkentaro/gdown.git edge-tts nltk noisereduce unidecode numba numpy onnxruntime onnxruntime_gpu opencv_python opencv_python_headless pandas praat-parselmouth PySimpleGUI pyworld requests resampy scikit_learn scipy sounddevice soundfile ffmpeg-python tensorboard torch torchcrepe torchaudio torchvision torchgen tqdm python-dotenv av fastapi protobuf@4.23.4 tensorboardX gin gin_config flask_cors flask
 ```
 
