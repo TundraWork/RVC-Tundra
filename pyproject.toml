@@ -1,8 +1,8 @@
 [tool.poetry]
-name = "applio-rvc-fork"
+name = "rvc-tundra"
 version = "2.1.4"
 description = ""
-authors = ["Your Name <you@example.com>"]
+authors = [""]
 readme = "README.md"
 
 [tool.poetry.dependencies]
