@@ -2093,7 +2093,7 @@ def GradioSetup():
                                     maximum=48000,
                                     label=i18n("Output sample rate"),
                                     info=i18n(
-                                        "Resample the output audio before output.\n0 = no resampling"
+                                        "Resample the output audio before output. 0 = no resampling"
                                     ),
                                     value=0,
                                     step=1,
@@ -2106,7 +2106,7 @@ def GradioSetup():
                                         "Output volume envelope ratio"
                                     ),
                                     info=i18n(
-                                        "Use input volume to envelope output volume.\n0.0 = no envelope, 1.0 = full envelope"
+                                        "Use input volume to envelope output volume. 0.0 = no envelope, 1.0 = full envelope"
                                     ),
                                     value=0.25,
                                     interactive=True,
@@ -2118,7 +2118,7 @@ def GradioSetup():
                                         "Voiceless consonant protection ratio"
                                     ),
                                     info=i18n(
-                                        "Protect voiceless consonants and breath sounds to prevent artifacts like tearing in electronic music.\n0.5 = disable, lower = more protection strength (can reduce indexing accuracy)"
+                                        "Protect voiceless consonants and breath sounds to prevent artifacts like tearing in electronic music. 0.5 = disable, lower = more protection strength (can reduce indexing accuracy)"
                                     ),
                                     value=0.33,
                                     step=0.01,
@@ -2131,7 +2131,7 @@ def GradioSetup():
                                         "Pitch harvest smoothing radius"
                                     ),
                                     info=i18n(
-                                        "Apply median filtering to the harvested pitch results if value >= 3.\nhigher = reduce breathiness, lower = more pitch accuracy"
+                                        "Apply median filtering to the harvested pitch results if value >= 3. higher = reduce breathiness, lower = more pitch accuracy"
                                     ),
                                     value=3,
                                     step=1,
@@ -2142,7 +2142,7 @@ def GradioSetup():
                                     maximum=1,
                                     label=i18n("Feature extraction ratio"),
                                     info=i18n(
-                                        "The ratio of feature to be extracted from the model.\n0.0 = ?, 1.0 = all"
+                                        "The ratio of feature to be extracted from the model. 0.0 = ?, 1.0 = all"
                                     ),
                                     value=0.75,
                                     interactive=True,
@@ -2174,7 +2174,7 @@ def GradioSetup():
                                     qfrency = gr.Slider(
                                         value=Quefrency,
                                         label=i18n("Quefrency (ms)"),
-                                        info=i18n("Used for formant preservation.\nSee https://github.com/jurihock/stftPitchShift"),
+                                        info=i18n("Used for formant preservation. See https://github.com/jurihock/stftPitchShift"),
                                         minimum=0.0,
                                         maximum=16.0,
                                         step=0.1,
@@ -2183,8 +2183,8 @@ def GradioSetup():
                                     )
                                     tmbre = gr.Slider(
                                         value=Timbre,
-                                        label=i18n("Timbre"),
-                                        info=i18n("Fractional timbre shifting factor related to quefrency.\ndefault = 1.0"),
+                                        label=i18n("Timbre shifting"),
+                                        info=i18n("Fractional timbre shifting factor related to quefrency. default = 1.0"),
                                         minimum=0.0,
                                         maximum=16.0,
                                         step=0.1,
