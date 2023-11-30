@@ -14,11 +14,11 @@ winget install --id Python.Python.3.10 -e
 
 > https://aka.ms/vs/17/release/vs_BuildTools.exe
 
+> NOTE: You must install workload "Desktop development with C++" and component "Windows 10 SDK" / "Windows 11 SDK".
+
 - Visual C++ 2022 Redistributable
 
 > https://aka.ms/vs/17/release/vc_redist.x64.exe
-
-> NOTE: You must install workload "Desktop development with C++" and component "Windows 10 SDK" / "Windows 11 SDK".
 
 - Git for Windows
 
