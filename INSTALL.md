@@ -88,8 +88,8 @@ poetry add tornadohttp setuptools pydantic fairseq wheel google-auth-oauthlib pe
 pip install -r requirements.txt
 ``````
 
-## 4. Pretrained model data
+## 5. Pretrained model weights
 
-All required pretrained model data will be downloaded automatically from huggingface on first run.
+All required pretrained model weights will be downloaded automatically from huggingface on first run.
 
 See `infer-web.py` for details.
