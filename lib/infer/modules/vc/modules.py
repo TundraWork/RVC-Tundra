@@ -183,7 +183,6 @@ class VC:
         f0_file,
         f0_method,
         file_index,
-        file_index2,
         index_rate,
         filter_radius,
         resample_sr,
@@ -212,18 +211,6 @@ class VC:
             print("------")
             print(new_dir_path)
             if resultm == "Finish":
-
-                if file_index and not file_index == "" and isinstance(file_index, str):
-                    file_index = file_index.strip(" ") \
-                    .strip('"') \
-                    .strip("\n") \
-                    .strip('"') \
-                    .strip(" ") \
-                    .replace("trained", "added")
-                elif file_index2:
-                    file_index = file_index2
-                else:
-                    file_index = ""  
 
                 # Use the code from vc_multi to process the segmented audio
                 if rvc_globals.NotesOrHertz and f0_method != 'rmvpe':
@@ -463,7 +450,6 @@ class VC:
         f0_file,
         f0_method,
         file_index,
-        file_index2,
         index_rate,
         filter_radius,
         resample_sr,
@@ -517,18 +503,6 @@ class VC:
                 message = "Model was not properly selected"
                 print(message)
                 return message, None
-            
-            if file_index and not file_index == "" and isinstance(file_index, str):
-                file_index = file_index.strip(" ") \
-                .strip('"') \
-                .strip("\n") \
-                .strip('"') \
-                .strip(" ") \
-                .replace("trained", "added")
-            elif file_index2:
-                file_index = file_index2
-            else:
-                file_index = ""  
 
             try:
                 audio_opt = self.pipeline.pipeline(
@@ -599,7 +573,6 @@ class VC:
         f0_up_key,
         f0_method,
         file_index,
-        file_index2,
         index_rate,
         filter_radius,
         resample_sr,
@@ -650,14 +623,13 @@ class VC:
                     None,
                     f0_method,
                     file_index,
-                    file_index2,
                     # file_big_npy,
                     index_rate,
                     filter_radius,
                     resample_sr,
                     rms_mix_rate,
                     protect,
-                    crepe_hop_length, 
+                    crepe_hop_length,
                     f0_min, 
                     note_min, 
                     f0_max, 

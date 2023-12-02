@@ -1388,7 +1388,6 @@ def cli_infer(com):
         f0_file,
         f0_method,
         feature_index_path,
-        feature_index_path,
         feature_ratio,
         harvest_median_filter,
         resample,
@@ -1714,7 +1713,10 @@ def switch_pitch_controls(f0method0):
         )
 
 
-def match_index(sid0: str) -> tuple:
+def match_index(sid0: str) -> str:
+    if not sid0:
+        return ""
+
     sid0strip = re.sub(r"\.pth|\.onnx$", "", sid0)
     sid0name = os.path.split(sid0strip)[-1]  # Extract only the name, not the directory
 
@@ -1892,16 +1894,6 @@ def GradioSetup():
 
                 with gr.TabItem(i18n("Single")):
                     with gr.Row():
-                        spk_item = gr.Number(
-                            minimum=0,
-                            maximum=127,
-                            step=1,
-                            label=i18n("Speaker ID"),
-                            value=0,
-                            precision=0,
-                            interactive=True,
-                        )
-                    with gr.Row():
                         with gr.Column():
                             with gr.Group():
                                 dropbox = gr.File(label=i18n("Select an audio file"))
@@ -1936,134 +1928,135 @@ def GradioSetup():
                                     api_name="infer_refresh",
                                 )
                         with gr.Column():
+                            spk_item = gr.Number(
+                                minimum=0,
+                                maximum=127,
+                                step=1,
+                                label=i18n("Speaker ID"),
+                                value=0,
+                                precision=0,
+                                interactive=True,
+                            )
                             vc_transform0 = gr.Number(
                                 label=i18n(
                                     "Transpose (number of semitones, raise by an octave: 12, lower by an octave: -12)"
                                 ),
                                 value=0,
                             )
+                            f0_autotune = gr.Checkbox(
+                                label=i18n("Use autotune"),
+                                info=i18n("Round pitch to the nearest note, suitable for singing"),
+                                interactive=True,
+                                value=False,
+                            )
+                            split_audio = gr.Checkbox(
+                                label=i18n("Use auto segmentation"),
+                                info=i18n("Split audio into segments based on silence, suppresses model noise"),
+                                interactive=True,
+                            )
+                            format1_ = gr.Radio(
+                                label=i18n("Export file format"),
+                                choices=["wav", "flac", "mp3", "m4a"],
+                                value="wav",
+                                interactive=True,
+                            )
                             advanced_settings_checkbox = gr.Checkbox(
                                 value=False,
-                                label=i18n("Show advanced configurations"),
+                                label=i18n("Show advanced settings"),
                                 interactive=True,
                             )
                     # Advanced settings container
                     with gr.Column(
                         visible=False
                     ) as advanced_settings:  # Initially hidden
-                        with gr.Row(label=i18n("Advanced configurations"), open=False):
+                        with gr.Row(label=i18n("Advanced settings"), open=False):
                             with gr.Column():
-                                f0method0 = gr.Radio(
-                                    label=i18n(
-                                        "Pitch extraction algorithm"
-                                    ),
-                                    choices=[
-                                        "pm",
-                                        "harvest",
-                                        "dio",
-                                        "crepe",
-                                        "crepe-tiny",
-                                        "mangio-crepe",
-                                        "mangio-crepe-tiny",
-                                        "rmvpe",
-                                        "rmvpe+",
-                                    ]
-                                    if config.dml == False
-                                    else [
-                                        "pm",
-                                        "harvest",
-                                        "dio",
-                                        "rmvpe",
-                                        "rmvpe+",
-                                    ],
-                                    value="rmvpe+",
-                                    interactive=True,
-                                )
-                                crepe_hop_length = gr.Slider(
-                                    minimum=1,
-                                    maximum=512,
-                                    step=1,
-                                    label=i18n("Hop length"),
-                                    info=i18n("Lower hop length provides higher accuracy in pitch while takes more time"),
-                                    value=120,
-                                    interactive=True,
-                                    visible=False,
-                                )
-                                minpitch_slider = gr.Slider(
-                                    label=i18n("Min pitch (frequency)"),
-                                    info=i18n(
-                                        "Specify minimal pitch for inference [Hz]"
-                                    ),
-                                    step=0.1,
-                                    minimum=1,
-                                    scale=0,
-                                    value=50,
-                                    maximum=16000,
-                                    interactive=True,
-                                    visible=(not rvc_globals.NotesOrHertz)
-                                    and (f0method0.value != "rmvpe"),
-                                )
-                                minpitch_txtbox = gr.Textbox(
-                                    label=i18n("Min pitch (note)"),
-                                    info=i18n(
-                                        "Specify minimal pitch for inference [NOTE]"
-                                    ),
-                                    placeholder="C5",
-                                    visible=(rvc_globals.NotesOrHertz)
-                                    and (f0method0.value != "rmvpe"),
-                                    interactive=True,
-                                )
-                                maxpitch_slider = gr.Slider(
-                                    label=i18n("Max pitch (frequency)"),
-                                    info=i18n("Specify max pitch for inference [Hz]"),
-                                    step=0.1,
-                                    minimum=1,
-                                    scale=0,
-                                    value=1100,
-                                    maximum=16000,
-                                    interactive=True,
-                                    visible=(not rvc_globals.NotesOrHertz)
-                                    and (f0method0.value != "rmvpe"),
-                                )
-                                maxpitch_txtbox = gr.Textbox(
-                                    label=i18n("Max pitch (note)"),
-                                    info=i18n("Specify max pitch for inference [NOTE]"),
-                                    placeholder="C6",
-                                    visible=(rvc_globals.NotesOrHertz)
-                                    and (f0method0.value != "rmvpe"),
-                                    interactive=True,
-                                )
-                                file_index1 = gr.Textbox(
-                                    label=i18n("Feature search index file path"),
-                                    info=i18n(
-                                        "Filename of the feature search index file begins with \"trained_\" and \"added_\""
-                                    ),
-                                    value="",
-                                    interactive=True,
-                                )
-                                f0_file = gr.File(
-                                    label=i18n(
-                                        "Pitch guidence file (optional). One pitch per line. Overwrites all F0 and pitch modulation."
+                                with gr.Group():
+                                    f0method0 = gr.Radio(
+                                        label=i18n(
+                                            "Pitch extraction algorithm"
+                                        ),
+                                        choices=[
+                                            "pm",
+                                            "harvest",
+                                            "dio",
+                                            "crepe",
+                                            "crepe-tiny",
+                                            "mangio-crepe",
+                                            "mangio-crepe-tiny",
+                                            "rmvpe",
+                                            "rmvpe+",
+                                        ]
+                                        if config.dml == False
+                                        else [
+                                            "pm",
+                                            "harvest",
+                                            "dio",
+                                            "rmvpe",
+                                            "rmvpe+",
+                                        ],
+                                        value="rmvpe+",
+                                        interactive=True,
                                     )
-                                )
-                                format1_ = gr.Radio(
-                                    label=i18n("Export audio format"),
-                                    choices=["wav", "flac", "mp3", "m4a"],
-                                    value="wav",
-                                    interactive=True,
-                                )
-                                f0_autotune = gr.Checkbox(
-                                    label=i18n("Use autotune"),
-                                    info=i18n("Round pitch to the nearest note, suitable for singing"),
-                                    interactive=True,
-                                    value=False,
-                                )
-                                split_audio = gr.Checkbox(
-                                    label=i18n("Use auto segmentation"),
-                                    info=i18n("Split audio into segments based on silence, suppresses model noise"),
-                                    interactive=True,
-                                )
-
+                                    crepe_hop_length = gr.Slider(
+                                        minimum=1,
+                                        maximum=512,
+                                        step=1,
+                                        label=i18n("Hop length"),
+                                        info=i18n("Lower hop length provides higher accuracy in pitch while takes more time"),
+                                        value=120,
+                                        interactive=True,
+                                        visible=False,
+                                    )
+                                    minpitch_slider = gr.Slider(
+                                        label=i18n("Min pitch (frequency)"),
+                                        info=i18n(
+                                            "Specify minimal pitch for inference [Hz]"
+                                        ),
+                                        step=0.1,
+                                        minimum=1,
+                                        scale=0,
+                                        value=50,
+                                        maximum=16000,
+                                        interactive=True,
+                                        visible=(not rvc_globals.NotesOrHertz)
+                                        and (f0method0.value != "rmvpe"),
+                                    )
+                                    minpitch_txtbox = gr.Textbox(
+                                        label=i18n("Min pitch (note)"),
+                                        info=i18n(
+                                            "Specify minimal pitch for inference [NOTE]"
+                                        ),
+                                        placeholder="C5",
+                                        visible=(rvc_globals.NotesOrHertz)
+                                        and (f0method0.value != "rmvpe"),
+                                        interactive=True,
+                                    )
+                                    maxpitch_slider = gr.Slider(
+                                        label=i18n("Max pitch (frequency)"),
+                                        info=i18n("Specify max pitch for inference [Hz]"),
+                                        step=0.1,
+                                        minimum=1,
+                                        scale=0,
+                                        value=1100,
+                                        maximum=16000,
+                                        interactive=True,
+                                        visible=(not rvc_globals.NotesOrHertz)
+                                        and (f0method0.value != "rmvpe"),
+                                    )
+                                    maxpitch_txtbox = gr.Textbox(
+                                        label=i18n("Max pitch (note)"),
+                                        info=i18n("Specify max pitch for inference [NOTE]"),
+                                        placeholder="C6",
+                                        visible=(rvc_globals.NotesOrHertz)
+                                        and (f0method0.value != "rmvpe"),
+                                        interactive=True,
+                                    )
+                                    f0_file = gr.File(
+                                        label=i18n(
+                                            "Pitch guidance file (optional). One pitch per line. Overwrites all F0 and pitch modulation."
+                                        )
+                                    )
                             f0method0.change(
                                 fn=lambda radio: (
                                     {
@@ -2075,7 +2068,6 @@ def GradioSetup():
                                 inputs=[f0method0],
                                 outputs=[crepe_hop_length],
                             )
-
                             f0method0.change(
                                 fn=switch_pitch_controls,
                                 inputs=[f0method0],
@@ -2086,7 +2078,6 @@ def GradioSetup():
                                     maxpitch_txtbox,
                                 ],
                             )
-
                             with gr.Column():
                                 resample_sr0 = gr.Slider(
                                     minimum=0,
@@ -2240,7 +2231,7 @@ def GradioSetup():
                         full_width=True
                     )
                     with gr.Row():
-                        vc_output1 = gr.Textbox(label=i18n("Output"))
+                        vc_output1 = gr.Textbox(label=i18n("Log messages"))
                         vc_output2 = gr.Audio(
                             label=i18n(
                                 "Result"
@@ -2256,7 +2247,6 @@ def GradioSetup():
                             vc_transform0,
                             f0_file,
                             f0method0,
-                            file_index1,
                             file_index2,
                             index_rate1,
                             filter_radius0,
@@ -2279,56 +2269,58 @@ def GradioSetup():
                 with gr.TabItem(i18n("Batch")):
                     with gr.Row():
                         with gr.Column():
+                            with gr.Group():
+                                inputs = gr.File(
+                                    file_count="multiple",
+                                    label=i18n(
+                                        "Select input audio files"
+                                    ),
+                                )
+                                dir_input = gr.Textbox(
+                                    label=i18n(
+                                        "Or enter path to the folder of audio files to be processed"
+                                    ),
+                                    value=os.path.join(now_dir, "assets", "audios"),
+                                )
+                                opt_input = gr.Textbox(
+                                    label=i18n("Audio output folder"), value="assets/audios/audio-outputs"
+                                )
+                        with gr.Column():
                             vc_transform1 = gr.Number(
                                 label=i18n(
-                                    "Transpose (integer, number of semitones, raise by an octave: 12, lower by an octave: -12):"
+                                    "Transpose (number of semitones, raise by an octave: 12, lower by an octave: -12)"
                                 ),
                                 value=0,
                             )
-                            opt_input = gr.Textbox(
-                                label=i18n("Specify output folder:"), value="assets/audios/audio-outputs"
+                            f0_autotune = gr.Checkbox(
+                                label="Use autotune",
+                                info="Round pitch to the nearest note, suitable for singing",
+                                interactive=True,
+                                value=False,
                             )
-                        with gr.Column():
-                            dir_input = gr.Textbox(
-                                label=i18n(
-                                    "Enter the path of the audio folder to be processed (copy it from the address bar of the file manager):"
-                                ),
-                                value=os.path.join(now_dir, "assets", "audios"),
+                            format1 = gr.Radio(
+                                label=i18n("Export file format"),
+                                choices=["wav", "flac", "mp3", "m4a"],
+                                value="wav",
+                                interactive=True,
                             )
-                        with gr.Column():
-                            inputs = gr.File(
-                                file_count="multiple",
-                                label=i18n(
-                                    "You can also input audio files in batches. Choose one of the two options. Priority is given to reading from the folder."
-                                ),
+                            advanced_settings_batch_checkbox = gr.Checkbox(
+                                value=False,
+                                label=i18n("Show advanced settings"),
+                                interactive=True,
                             )
                     with gr.Row():
                         with gr.Column():
-                            # Create a checkbox for advanced batch settings
-                            advanced_settings_batch_checkbox = gr.Checkbox(
-                                value=False,
-                                label=i18n("Advanced Settings"),
-                                interactive=True,
-                            )
-
-                            # Advanced batch settings container
                             with gr.Row(
                                 visible=False
-                            ) as advanced_settings_batch:  # Initially hidden
+                            ) as advanced_settings_batch:
                                 with gr.Row(
-                                    label=i18n("Advanced Settings"), open=False
+                                    label=i18n("Advanced settings"), open=False
                                 ):
                                     with gr.Column():
-                                        file_index3 = gr.Textbox(
-                                            label=i18n(
-                                                "Feature search database file path:"
-                                            ),
-                                            value="",
-                                            interactive=True,
-                                        )
                                         f0method1 = gr.Radio(
                                             label=i18n(
-                                                "Select the pitch extraction algorithm:"
+                                                "Pitch extraction algorithm"
                                             ),
                                             choices=[
                                                 "pm",
@@ -2350,21 +2342,12 @@ def GradioSetup():
                                             value="rmvpe",
                                             interactive=True,
                                         )
-
-                                        format1 = gr.Radio(
-                                            label=i18n("Export file format:"),
-                                            choices=["wav", "flac", "mp3", "m4a"],
-                                            value="wav",
-                                            interactive=True,
-                                        )
-
                                 with gr.Column():
                                     resample_sr1 = gr.Slider(
                                         minimum=0,
                                         maximum=48000,
-                                        label=i18n(
-                                            "Resample the output audio in post-processing to the final sample rate. Set to 0 for no resampling:"
-                                        ),
+                                        label=i18n("Output sample rate"),
+                                        info=i18n("Resample the output audio before output. 0 = no resampling"),
                                         value=0,
                                         step=1,
                                         interactive=True,
@@ -2372,18 +2355,16 @@ def GradioSetup():
                                     rms_mix_rate1 = gr.Slider(
                                         minimum=0,
                                         maximum=1,
-                                        label=i18n(
-                                            "Use the volume envelope of the input to replace or mix with the volume envelope of the output. The closer the ratio is to 1, the more the output envelope is used:"
-                                        ),
+                                        label=i18n("Output volume envelope ratio"),
+                                        info=i18n("Use input volume to envelope output volume. 0.0 = no envelope, 1.0 = full envelope"),
                                         value=1,
                                         interactive=True,
                                     )
                                     protect1 = gr.Slider(
                                         minimum=0,
                                         maximum=0.5,
-                                        label=i18n(
-                                            "Protect voiceless consonants and breath sounds to prevent artifacts such as tearing in electronic music. Set to 0.5 to disable. Decrease the value to increase protection, but it may reduce indexing accuracy:"
-                                        ),
+                                        label=i18n("Voiceless consonant protection ratio"),
+                                        info=i18n("Protect voiceless consonants and breath sounds to prevent artifacts like tearing in electronic music. 0.5 = disable, lower = more protection strength (can reduce indexing accuracy)"),
                                         value=0.33,
                                         step=0.01,
                                         interactive=True,
@@ -2391,38 +2372,32 @@ def GradioSetup():
                                     filter_radius1 = gr.Slider(
                                         minimum=0,
                                         maximum=7,
-                                        label=i18n(
-                                            "If >=3: apply median filtering to the harvested pitch results. The value represents the filter radius and can reduce breathiness."
-                                        ),
+                                        label=i18n("Pitch harvest smoothing radius"),
+                                        info=i18n("Apply median filtering to the harvested pitch results if value >= 3. higher = reduce breathiness, lower = more pitch accuracy"),
                                         value=3,
                                         step=1,
                                         interactive=True,
                                     )
-
                                     index_rate2 = gr.Slider(
                                         minimum=0,
                                         maximum=1,
-                                        label=i18n("Search feature ratio:"),
+                                        label=i18n("Feature extraction ratio"),
+                                        info=i18n("The ratio of feature to be extracted from the model. 0.0 = ?, 1.0 = all"),
                                         value=0.75,
                                         interactive=True,
-                                    )
-                                    f0_autotune = gr.Checkbox(
-                                        label="Enable autotune", interactive=True, value=False
                                     )
                                     hop_length = gr.Slider(
                                         minimum=1,
                                         maximum=512,
                                         step=1,
-                                        label=i18n(
-                                            "Hop Length (lower hop lengths take more time to infer but are more pitch accurate):"
-                                        ),
+                                        label=i18n("Hop length"),
+                                        info=i18n("Lower hop length provides higher accuracy in pitch while takes more time"),
                                         value=120,
                                         interactive=True,
                                         visible=False,
                                     )
-
-                            but1 = gr.Button(i18n("Convert"), variant="primary")
-                            vc_output3 = gr.Textbox(label=i18n("Output information:"))
+                            but1 = gr.Button(i18n("Inference"), variant="primary")
+                            vc_output3 = gr.Textbox(label=i18n("Log messages"))
                             but1.click(
                                 vc.vc_multi,
                                 [
@@ -2432,7 +2407,6 @@ def GradioSetup():
                                     inputs,
                                     vc_transform1,
                                     f0method1,
-                                    file_index3,
                                     file_index2,
                                     index_rate2,
                                     filter_radius1,
@@ -2450,7 +2424,6 @@ def GradioSetup():
                                 [vc_output3],
                                 api_name="infer_convert_batch",
                             )
-
                     sid0.select(
                         fn=vc.get_vc,
                         inputs=[sid0, protect0, protect1],
@@ -2529,9 +2502,9 @@ def GradioSetup():
                     with gr.Row():
                         with gr.Group():
                             info1 = gr.Textbox(
-                                label=i18n("Output"),
-                                lines=8,
-                                max_lines=8,
+                                label=i18n("Log messages"),
+                                lines=5,
+                                max_lines=5,
                                 value="",
                             )
                             but1 = gr.Button(i18n("Preprocess data"), variant="primary")
@@ -2579,14 +2552,15 @@ def GradioSetup():
                                 interactive=True,
                             )
                         with gr.Column():
-                            info2 = gr.Textbox(
-                                label=i18n("Output"),
-                                value="",
-                                lines=4,
-                                max_lines=4,
-                                interactive=False,
-                            )
-                            but2 = gr.Button(i18n("Extract feature"), variant="primary")
+                            with gr.Group():
+                                info2 = gr.Textbox(
+                                    label=i18n("Log messages"),
+                                    value="",
+                                    lines=5,
+                                    max_lines=5,
+                                    interactive=False,
+                                )
+                                but2 = gr.Button(i18n("Extract feature"), variant="primary")
                             but2.click(
                                 extract_f0_feature,
                                 [
@@ -2723,14 +2697,14 @@ def GradioSetup():
                                     i18n("Generate feature index"), variant="primary"
                                 )
                                 with gr.Group():
-                                    save_action = gr.Dropdown(
-                                        label=i18n("Save type"),
+                                    save_action = gr.Radio(
+                                        show_label=False,
                                         choices=[
+                                            i18n("Save final model"),
                                             i18n("Backup all"),
                                             i18n("Backup snapshot"),
-                                            i18n("Save final model"),
                                         ],
-                                        value=i18n("Choose save type..."),
+                                        value=i18n("Save final model"),
                                         interactive=True,
                                     )
                                     but7 = gr.Button(i18n("Save model"), variant="primary")
@@ -2781,7 +2755,7 @@ def GradioSetup():
                             )
                         with gr.Row():
                             info3 = gr.Textbox(
-                                label=i18n("Output"),
+                                label=i18n("Log messages"),
                                 lines=2,
                                 max_lines=2,
                                 value="",
@@ -2817,78 +2791,78 @@ def GradioSetup():
                 with gr.Row():
                     with gr.Column():
                         model_select = gr.Radio(
-                            label=i18n("Model Architecture:"),
+                            label=i18n("Model architecture"),
                             choices=["VR", "MDX", "Demucs (Beta)"],
                             value="VR",
                             interactive=True,
                         )
                         dir_wav_input = gr.Textbox(
-                            label=i18n(
-                                "Enter the path of the audio folder to be processed:"
-                            ),
-                            value=os.path.join(now_dir, "assets", "audios"),
+                            label=i18n("Path to input folder for audio files"),
+                            value=os.path.join(now_dir, "assets", "audios", "uvr5", "input"),
                         )
                         wav_inputs = gr.File(
                             file_count="multiple",
-                            label=i18n(
-                                "You can also input audio files in batches. Choose one of the two options. Priority is given to reading from the folder."
-                            ),
+                            label=i18n("Or select input audio files"),
                         )
-
                     with gr.Column():
                         model_choose = gr.Dropdown(
-                            label=i18n("Model:"), choices=uvr5_names
+                            label=i18n("Model"), choices=uvr5_names
                         )
                         agg = gr.Slider(
                             minimum=0,
                             maximum=20,
                             step=1,
-                            label="Vocal Extraction Aggressive",
+                            label="Extraction aggressiveness",
                             value=10,
                             interactive=True,
-                            visible=False,
                         )
                         opt_vocal_root = gr.Textbox(
-                            label=i18n("Specify the output folder for vocals:"),
-                            value="assets/audios",
+                            label=i18n("Path to output folder for vocals"),
+                            value=os.path.join(now_dir, "assets", "audios", "uvr5", "output-vocals"),
                         )
                         opt_ins_root = gr.Textbox(
-                            label=i18n("Specify the output folder for accompaniment:"),
-                            value="assets/audios/audio-others",
+                            label=i18n("Path to output folder for accompaniment"),
+                            value=os.path.join(now_dir, "assets", "audios", "uvr5", "output-others"),
                         )
                         format0 = gr.Radio(
-                            label=i18n("Export file format:"),
+                            label=i18n("Export file format"),
                             choices=["wav", "flac", "mp3", "m4a"],
                             value="flac",
                             interactive=True,
                         )
-                    model_select.change(
-                        fn=update_model_choices,
-                        inputs=model_select,
-                        outputs=model_choose,
-                    )
-                    but2 = gr.Button(i18n("Convert"), variant="primary")
-                    vc_output4 = gr.Textbox(label=i18n("Output information:"))
-                    # wav_inputs.upload(fn=save_to_wav2_edited, inputs=[wav_inputs], outputs=[])
-                    but2.click(
-                        uvr,
-                        [
-                            model_choose,
-                            dir_wav_input,
-                            opt_vocal_root,
-                            wav_inputs,
-                            opt_ins_root,
-                            agg,
-                            format0,
-                            model_select,
-                        ],
-                        [vc_output4],
-                        api_name="uvr_convert",
-                    )
+                        model_select.change(
+                            fn=update_model_choices,
+                            inputs=model_select,
+                            outputs=model_choose,
+                        )
+                    with gr.Column():
+                        with gr.Group():
+                            vc_output4 = gr.Textbox(
+                                label=i18n("Log messages"),
+                                lines=16,
+                                max_lines=16,
+                            )
+                            but2 = gr.Button(i18n("Convert"), variant="primary")
+                            # wav_inputs.upload(fn=save_to_wav2_edited, inputs=[wav_inputs], outputs=[])
+                        but2.click(
+                            uvr,
+                            [
+                                model_choose,
+                                dir_wav_input,
+                                opt_vocal_root,
+                                wav_inputs,
+                                opt_ins_root,
+                                agg,
+                                format0,
+                                model_select,
+                            ],
+                            [vc_output4],
+                            api_name="uvr_convert",
+                        )
             with gr.TabItem(i18n("TTS")):
                 with gr.Column():
                     text_test = gr.Textbox(
-                        label=i18n("Text:"),
+                        label=i18n("Text"),
                         placeholder=i18n(
                             "Enter the text you want to convert to voice..."
                         ),
@@ -2901,12 +2875,12 @@ def GradioSetup():
                         ttsmethod_test = gr.Dropdown(
                             tts_methods_voice,
                             value="Edge-tts",
-                            label=i18n("TTS Method:"),
+                            label=i18n("TTS Engine"),
                             visible=True,
                         )
                         tts_test = gr.Dropdown(
                             tts.set_edge_voice,
-                            label=i18n("TTS Model:"),
+                            label=i18n("TTS Voice"),
                             visible=True,
                         )
                         ttsmethod_test.change(
@@ -2916,35 +2890,35 @@ def GradioSetup():
                         )
 
                     with gr.Column():
-                        model_voice_path07 = gr.Dropdown(
-                            label=i18n("Voice weight"),
-                            choices=sorted(names),
-                            value=i18n("Choose a voice weight file..."),
-                        )
-                        file_index2_07 = gr.Dropdown(
-                            label=i18n("Voice feature index"),
-                            choices=get_indexes(),
-                            interactive=True,
-                            allow_custom_value=True,
-                        )
-                        model_voice_path07.change(
-                            fn=match_index,
-                            inputs=[model_voice_path07],
-                            outputs=[file_index2_07],
-                        )
+                        with gr.Group():
+                            model_voice_path07 = gr.Dropdown(
+                                label=i18n("Voice weight"),
+                                choices=sorted(names),
+                                value=i18n("Choose a voice weight file..."),
+                            )
+                            file_index2_07 = gr.Dropdown(
+                                label=i18n("Voice feature index"),
+                                choices=get_indexes(),
+                                interactive=True,
+                                allow_custom_value=True,
+                            )
+                            model_voice_path07.change(
+                                fn=match_index,
+                                inputs=[model_voice_path07],
+                                outputs=[file_index2_07],
+                            )
+                            refresh_button_ = gr.Button(i18n("Refresh list"), variant="primary")
+                            refresh_button_.click(
+                                fn=change_choices2,
+                                inputs=[],
+                                outputs=[model_voice_path07, file_index2_07],
+                            )
                 with gr.Row():
-                    refresh_button_ = gr.Button(i18n("Refresh"), variant="primary")
-                    refresh_button_.click(
-                        fn=change_choices2,
-                        inputs=[],
-                        outputs=[model_voice_path07, file_index2_07],
-                    )
-                with gr.Row():
-                    original_ttsvoice = gr.Audio(label=i18n("Audio TTS:"))
-                    ttsvoice = gr.Audio(label=i18n("Audio RVC:"))
+                    original_ttsvoice = gr.Audio(label=i18n("TTS Output"))
+                    ttsvoice = gr.Audio(label=i18n("RVC Output"))
 
                 with gr.Row():
-                    button_test = gr.Button(i18n("Convert"), variant="primary")
+                    button_test = gr.Button(i18n("Inference"), variant="primary")
 
                 button_test.click(
                     tts.use_tts,
