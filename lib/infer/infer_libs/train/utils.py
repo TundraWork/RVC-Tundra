@@ -362,7 +362,14 @@ def get_hparams(init=True):
         "--stop_on_fit",
         type=int,
         required=False,
-        help="if retraining mode collapses, 1 or 0",
+        help="stop training if no improvement detected in the last N epochs, 1 or 0",
+    )
+    parser.add_argument(
+        "-sofg",
+        "--stop_on_fit_grace",
+        type=int,
+        required=False,
+        help="grace period (epochs) for --stop_on_fit",
     )
     parser.add_argument(
         "-sm",
@@ -407,6 +414,7 @@ def get_hparams(init=True):
     hparams.save_every_weights = args.save_every_weights
     hparams.if_cache_data_in_gpu = args.if_cache_data_in_gpu
     hparams.if_stop_on_fit = args.stop_on_fit
+    hparams.stop_on_fit_grace = args.stop_on_fit_grace
     hparams.smoothness = args.smoothness
     hparams.if_retrain_collapse = args.retrain_collapse
     if args.collapse_threshold != None:

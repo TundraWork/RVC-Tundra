@@ -1074,8 +1074,9 @@ def click_train(
     version19,
     if_retrain_collapse20,
     if_stop_on_fit21,
-    smoothness22,
-    collapse_threshold23
+    stop_on_fit_grace22,
+    smoothness23,
+    collapse_threshold24
 ):
     CSVutil("lib/csvdb/stop.csv", "w+", "formanting", False)
     # 生成filelist
@@ -1184,8 +1185,8 @@ def click_train(
             1 if if_cache_gpu17 == True else 0,
             1 if if_save_every_weights18 == True else 0,
             version19,
-            ("-sof %s -sm %s" % (1 if if_stop_on_fit21 == True else 0, smoothness22)) if if_stop_on_fit21 else "",
-            ("-rc %s -ct %s" % (1 if if_retrain_collapse20 == True else 0, collapse_threshold23)) if if_retrain_collapse20 else "",
+            ("-sof %s -sofg %s -sm %s" % (1 if if_stop_on_fit21 == True else 0, stop_on_fit_grace22, smoothness23)) if if_stop_on_fit21 else "",
+            ("-rc %s -ct %s" % (1 if if_retrain_collapse20 == True else 0, collapse_threshold24)) if if_retrain_collapse20 else "",
         )
     )
     logger.info(cmd)
@@ -1316,216 +1317,9 @@ def change_info_(ckpt_path):
 F0GPUVisible = config.dml == False
 
 
-import re as regex
-import scipy.io.wavfile as wavfile
-
-cli_current_page = "HOME"
-
-
-def cli_split_command(com):
-    exp = r'(?:(?<=\s)|^)"(.*?)"(?=\s|$)|(\S+)'
-    split_array = regex.findall(exp, com)
-    split_array = [group[0] if group[0] else group[1] for group in split_array]
-    return split_array
-
-
 def execute_generator_function(genObject):
     for _ in genObject:
         pass
-
-
-def cli_infer(com):
-    # get VC first
-    com = cli_split_command(com)
-    model_name = com[0]
-    source_audio_path = com[1]
-    format1_ = com[2]
-    feature_index_path = com[3]
-    f0_file = None  # Not Implemented Yet
-
-    # Get parameters for inference
-    speaker_id = int(com[4])
-    transposition = float(com[5])
-    f0_method = com[6]
-    crepe_hop_length = int(com[7])
-    harvest_median_filter = int(com[8])
-    resample = int(com[9])
-    mix = float(com[10])
-    feature_ratio = float(com[11])
-    protection_amnt = float(com[12])
-    protect1 = 0.5
-
-    if com[13] == "False" or com[13] == "false":
-        DoFormant = False
-        Quefrency = 0.0
-        Timbre = 0.0
-        CSVutil(
-            "lib/csvdb/formanting.csv", "w+", "formanting", DoFormant, Quefrency, Timbre
-        )
-
-    else:
-        DoFormant = True
-        Quefrency = float(com[14])
-        Timbre = float(com[15])
-        CSVutil(
-            "lib/csvdb/formanting.csv", "w+", "formanting", DoFormant, Quefrency, Timbre
-        )
-    split_audio = True if (com[16] == 1) else False	
-    f0_autotune = True if (com[17] == 1) else False	
-    minpitch_slider = com[18]
-    minpitch_txtbox = minpitch_slider
-    maxpitch_slider = com[19]
-    maxpitch_txtbox = maxpitch_slider
-
-    print("Applio-RVC-Fork Infer-CLI: Starting the inference...")
-    vc_data = vc.get_vc(model_name, protection_amnt, protect1)
-    print(vc_data)
-    print("Applio-RVC-Fork Infer-CLI: Performing inference...")
-    conversion_data = vc.vc_single(
-        speaker_id,
-        source_audio_path,
-        transposition,
-        f0_file,
-        f0_method,
-        feature_index_path,
-        feature_ratio,
-        harvest_median_filter,
-        resample,
-        mix,
-        protection_amnt,
-        format1_,
-        split_audio,
-        crepe_hop_length,
-        minpitch_slider,
-        minpitch_txtbox,
-        maxpitch_slider,
-        maxpitch_txtbox,
-        f0_autotune,
-    )
-    if "Success." in conversion_data[0]:
-        print(
-            "Applio-RVC-Fork Infer-CLI: Inference succeeded."
-        )
-    else:
-        print("Applio-RVC-Fork Infer-CLI: Inference failed. Here's the traceback: ")
-        print(conversion_data[0])
-
-
-def cli_pre_process(com):
-    com = cli_split_command(com)
-    model_name = com[0]
-    trainset_directory = com[1]
-    sample_rate = com[2]
-    num_processes = int(com[3])
-
-    print("Applio-RVC-Fork Pre-process: Starting...")
-    generator = preprocess_dataset(
-        trainset_directory, model_name, sample_rate, num_processes
-    )
-    execute_generator_function(generator)
-    print("Applio-RVC-Fork Pre-process: Finished")
-
-
-def cli_extract_feature(com):
-    com = cli_split_command(com)
-    model_name = com[0]
-    gpus = com[1]
-    num_processes = int(com[2])
-    has_pitch_guidance = True if (int(com[3]) == 1) else False
-    f0_method = com[4]
-    crepe_hop_length = int(com[5])
-    version = com[6]  # v1 or v2
-
-    print("Applio-RVC-CLI: Extract Feature Has Pitch: " + str(has_pitch_guidance))
-    print("Applio-RVC-CLI: Extract Feature Version: " + str(version))
-    print("Applio-RVC-Fork Feature Extraction: Starting...")
-    generator = extract_f0_feature(
-        gpus,
-        num_processes,
-        f0_method,
-        has_pitch_guidance,
-        model_name,
-        version,
-        crepe_hop_length,
-    )
-    execute_generator_function(generator)
-    print("Applio-RVC-Fork Feature Extraction: Finished")
-
-
-def cli_train(com):
-    com = cli_split_command(com)
-    model_name = com[0]
-    sample_rate = com[1]
-    has_pitch_guidance = True if (int(com[2]) == 1) else False
-    speaker_id = int(com[3])
-    save_epoch_iteration = int(com[4])
-    total_epoch = int(com[5])  # 10000
-    batch_size = int(com[6])
-    gpu_card_slot_numbers = com[7]
-    if_save_latest = True if (int(com[8]) == 1) else False
-    if_cache_gpu = True if (int(com[9]) == 1) else False
-    if_save_every_weight = True if (int(com[10]) == 1) else False
-    version = com[11]
-    if_retrain_collapse20 = True if (int(com[12]) == 1) else False	
-    if_stop_on_fit21 = True if (int(com[13]) == 1) else False	
-    smoothness23 = float(com[14]) if com[14] != "" else 0.975 
-    collapse_threshold22 = int(com[15]) if com[15] != "" else 25
-
-
-    pretrained_base = "pretrained/" if version == "v1" else "pretrained_v2/"
-
-    g_pretrained_path = "%sf0G%s.pth" % (pretrained_base, sample_rate)
-    d_pretrained_path = "%sf0D%s.pth" % (pretrained_base, sample_rate)
-
-    print("Applio-RVC-Fork Train-CLI: Training...")
-    click_train(
-        model_name,
-        sample_rate,
-        has_pitch_guidance,
-        speaker_id,
-        save_epoch_iteration,
-        total_epoch,
-        batch_size,
-        if_save_latest,
-        g_pretrained_path,
-        d_pretrained_path,
-        gpu_card_slot_numbers,
-        if_cache_gpu,
-        if_save_every_weight,
-        version,
-        if_retrain_collapse20,
-        if_stop_on_fit21,
-        smoothness23,
-        collapse_threshold22
-    )
-
-
-def cli_train_feature(com):
-    com = cli_split_command(com)
-    model_name = com[0]
-    version = com[1]
-    print("Applio-RVC-Fork Train Feature Index-CLI: Training... Please wait")
-    generator = train_index(model_name, version)
-    execute_generator_function(generator)
-    print("Applio-RVC-Fork Train Feature Index-CLI: Done!")
-
-
-def cli_extract_model(com):
-    com = cli_split_command(com)
-    model_path = com[0]
-    save_name = com[1]
-    sample_rate = com[2]
-    has_pitch_guidance = com[3]
-    info = com[4]
-    version = com[5]
-    extract_small_model_process = extract_small_model(
-        model_path, save_name, sample_rate, has_pitch_guidance, info, version
-    )
-    if extract_small_model_process == "Success.":
-        print("Applio-RVC-Fork Extract Small Model: Success!")
-    else:
-        print(str(extract_small_model_process))
-        print("Applio-RVC-Fork Extract Small Model: Failed!")
 
 
 def preset_apply(preset, qfer, tmbr):
@@ -1540,158 +1334,6 @@ def preset_apply(preset, qfer, tmbr):
         {"value": qfer, "__type__": "update"},
         {"value": tmbr, "__type__": "update"},
     )
-
-
-def print_page_details():
-    if cli_current_page == "HOME":
-        print(
-            "\n    go home            : Takes you back to home with a navigation list."
-            "\n    go infer           : Takes you to inference command execution."
-            "\n    go pre-process     : Takes you to training step.1) pre-process command execution."
-            "\n    go extract-feature : Takes you to training step.2) extract-feature command execution."
-            "\n    go train           : Takes you to training step.3) being or continue training command execution."
-            "\n    go train-feature   : Takes you to the train feature index command execution."
-            "\n    go extract-model   : Takes you to the extract small model command execution."
-        )
-    elif cli_current_page == "INFER":
-        print(
-            "\n    arg 1) model name with .pth in logs/weights: mi-test.pth"
-            "\n    arg 2) source audio path: assets/audios/MySource.wav"
-            "\n    arg 3) export format (wav,flac,mp3) : wav"
-            "\n    arg 4) feature index file path: logs/mi-test/added_IVF3042_Flat_nprobe_1.index"
-            "\n    arg 5) speaker id: 0"
-            "\n    arg 6) transposition: 0"
-            "\n    arg 7) f0 method: harvest (pm, harvest, crepe, crepe-tiny, hybrid[x,x,x,x], mangio-crepe, mangio-crepe-tiny, rmvpe, rmvpe+)"
-            "\n    arg 8) crepe hop length: 160"
-            "\n    arg 9) harvest median filter radius: 3 (0-7)"
-            "\n    arg 10) post resample rate: 0"
-            "\n    arg 11) mix volume envelope: 1"
-            "\n    arg 12) feature index ratio: 0.75 (0-1)"
-            "\n    arg 13) Voiceless Consonant Protection (Less Artifact): 0.33 (Smaller number = more protection. 0.50 means Dont Use.)"
-            "\n    arg 14) Whether to formant shift the inference audio before conversion: False (if set to false, you can ignore setting the quefrency and timbre values for formanting)"
-            "\n    arg 15)* Quefrency for formanting: 8.0 (no need to set if arg14 is False/false)"
-            "\n    arg 16)* Timbre for formanting: 1.2 (no need to set if arg14 is False/false)"
-            "\n    arg 17)* Audio split depending on silence: 0 (0 for no, 1 for yes)"
-            "\n    arg 18)* Extra autotune: 0 (0 for no, 1 for yes)\n"
-            "\n    Only for rmvpe+ algorithm (If it is another algorithm, set default.):"
-            "\n    arg 19)* Min pitch [HZ] / [NOTE][OCTAVE]: 50 or C5"
-            "\n    arg 20)* Max pitch [HZ] / [NOTE][OCTAVE]: 1000 or C6\n"
-            "\nExample: mi-test.pth assets/audios/Sidney.wav wav logs/mi-test/added_index.index 0 -2 harvest 160 3 0 1 0.95 0.33 True 8.0 1.2 1 0 50 1000"
-        )
-    elif cli_current_page == "PRE-PROCESS":
-        print(
-            "\n    arg 1) Model folder name in ./logs: mi-test"
-            "\n    arg 2) Trainset directory: mydataset (or) E:\\my-data-set"
-            "\n    arg 3) Sample rate: 40k (32k, 40k, 48k)"
-            "\n    arg 4) Number of CPU threads to use: 8 \n"
-            "\nExample: mi-test mydataset 40k 24"
-        )
-    elif cli_current_page == "EXTRACT-FEATURE":
-        print(
-            "\n    arg 1) Model folder name in ./logs: mi-test"
-            "\n    arg 2) Gpu card slot: 0 (0-1-2 if using 3 GPUs)"
-            "\n    arg 3) Number of CPU threads to use: 8"
-            "\n    arg 4) Has Pitch Guidance?: 1 (0 for no, 1 for yes)"
-            "\n    arg 5) f0 Method: harvest (pm, harvest, dio, crepe)"
-            "\n    arg 6) Crepe hop length: 128"
-            "\n    arg 7) Version for pre-trained models: v2 (use either v1 or v2)\n"
-            "\nExample: mi-test 0 24 1 harvest 128 v2"
-        )
-    elif cli_current_page == "TRAIN":
-        print(
-            "\n    arg 1) Model folder name in ./logs: mi-test"
-            "\n    arg 2) Sample rate: 40k (32k, 40k, 48k)"
-            "\n    arg 3) Has Pitch Guidance?: 1 (0 for no, 1 for yes)"
-            "\n    arg 4) speaker id: 0"
-            "\n    arg 5) Save epoch iteration: 50"
-            "\n    arg 6) Total epochs: 10000"
-            "\n    arg 7) Batch size: 8"
-            "\n    arg 8) Gpu card slot: 0 (0-1-2 if using 3 GPUs)"
-            "\n    arg 9) Save only the latest checkpoint: 0 (0 for no, 1 for yes)"
-            "\n    arg 10) Whether to cache training set to vram: 0 (0 for no, 1 for yes)"
-            "\n    arg 11) Save extracted small model every generation?: 0 (0 for no, 1 for yes)"
-            "\n    arg 12) Model architecture version: v2 (use either v1 or v2)"
-            "\n    arg 13) Reload from checkpoint before a mode collapse and try training it again: 0 (0 for no, 1 for yes)"
-            "\n    arg 14) Stop training early if no improvement detected. (Set Training Epochs to something high like 9999): 0 (0 for no, 1 for yes)\n"
-            "\n    arg 15) Threshold %% for collapse: Default 25"
-            "\n    arg 16) Improvement smoothness calculation: Default 0.975\n"
-            "\nExample: mi-test 40k 1 0 50 10000 8 0 0 0 0 v2 0 0 25 0.975"
-        )
-    elif cli_current_page == "TRAIN-FEATURE":
-        print(
-            "\n    arg 1) Model folder name in ./logs: mi-test"
-            "\n    arg 2) Model architecture version: v2 (use either v1 or v2)\n"
-            "\nExample: mi-test v2"
-        )
-    elif cli_current_page == "EXTRACT-MODEL":
-        print(
-            "\n    arg 1) Model Path: logs/mi-test/G_168000.pth"
-            "\n    arg 2) Model save name: MyModel"
-            "\n    arg 3) Sample rate: 40k (32k, 40k, 48k)"
-            "\n    arg 4) Has Pitch Guidance?: 1 (0 for no, 1 for yes)"
-            '\n    arg 5) Model information: "My Model"'
-            "\n    arg 6) Model architecture version: v2 (use either v1 or v2)\n"
-            '\nExample: logs/mi-test/G_168000.pth MyModel 40k 1 "Created by Cole Mangio" v2'
-        )
-
-
-def change_page(page):
-    global cli_current_page
-    cli_current_page = page
-    return 0
-
-
-def execute_command(com):
-    if com == "go home":
-        return change_page("HOME")
-    elif com == "go infer":
-        return change_page("INFER")
-    elif com == "go pre-process":
-        return change_page("PRE-PROCESS")
-    elif com == "go extract-feature":
-        return change_page("EXTRACT-FEATURE")
-    elif com == "go train":
-        return change_page("TRAIN")
-    elif com == "go train-feature":
-        return change_page("TRAIN-FEATURE")
-    elif com == "go extract-model":
-        return change_page("EXTRACT-MODEL")
-    else:
-        if com[:3] == "go ":
-            print("page '%s' does not exist!" % com[3:])
-            return 0
-
-    if cli_current_page == "INFER":
-        cli_infer(com)
-    elif cli_current_page == "PRE-PROCESS":
-        cli_pre_process(com)
-    elif cli_current_page == "EXTRACT-FEATURE":
-        cli_extract_feature(com)
-    elif cli_current_page == "TRAIN":
-        cli_train(com)
-    elif cli_current_page == "TRAIN-FEATURE":
-        cli_train_feature(com)
-    elif cli_current_page == "EXTRACT-MODEL":
-        cli_extract_model(com)
-
-
-def cli_navigation_loop():
-    while True:
-        print("\nYou are currently in '%s':" % cli_current_page)
-        print_page_details()
-        command = input("%s: " % cli_current_page)
-        try:
-            execute_command(command)
-        except:
-            print(traceback.format_exc())
-
-
-if config.is_cli:
-    print("\n\nApplio-RVC-Fork CLI\n")
-    print(
-        "Welcome to the CLI version of RVC. Please read the documentation on README.MD to understand how to use this app.\n"
-    )
-    cli_navigation_loop()
 
 
 def switch_pitch_controls(f0method0):
@@ -2602,6 +2244,14 @@ def GradioSetup():
                                     value=True,
                                     interactive=True,
                                 )
+                                if_stop_on_fit21 = gr.Checkbox(
+                                    label="Over-train detection",
+                                    info=i18n(
+                                        "Stop training if no improvement seen in the last N epochs"
+                                    ),
+                                    value=False,
+                                    interactive=True,
+                                )
                                 if_retrain_collapse20 = gr.Checkbox(
                                     label="Mode collapse detection",
                                     info=i18n(
@@ -2610,19 +2260,11 @@ def GradioSetup():
                                     value=False,
                                     interactive=True,
                                 )
-                                if_stop_on_fit21 = gr.Checkbox(
-                                    label="Auto training",
-                                    info=i18n(
-                                        "Keep training until no improvement detected in the last 100 epochs"
-                                    ),
-                                    value=False,
-                                    interactive=True,
-                                )
                             with gr.Column():
                                 total_epoch11 = gr.Slider(
-                                    minimum=1,
-                                    maximum=10000,
-                                    step=2,
+                                    minimum=10,
+                                    maximum=4000,
+                                    step=5,
                                     label=i18n("Max training epochs"),
                                     value=100,
                                     interactive=True,
@@ -2645,12 +2287,12 @@ def GradioSetup():
                                     interactive=True,
                                     visible=True,
                                 )
-                                collapse_threshold22 = gr.Slider(
-                                    minimum=1,
-                                    maximum=50,
+                                stop_on_fit_grace22 = gr.Slider(
+                                    minimum=10,
+                                    maximum=400,
                                     step=1,
-                                    label=i18n("Mode collapse Threshold (%)"),
-                                    value=25,
+                                    label=i18n("Grace period for over-train detection"),
+                                    value=100,
                                     interactive=True,
                                     visible=False
                                 )
@@ -2658,8 +2300,17 @@ def GradioSetup():
                                     minimum=0,
                                     maximum=0.99,
                                     step=0.005,
-                                    label=i18n("Improvement calculation smoothness"),
+                                    label=i18n("Over-train improvement calculation smoothness"),
                                     value=0.975,
+                                    interactive=True,
+                                    visible=False
+                                )
+                                collapse_threshold24 = gr.Slider(
+                                    minimum=1,
+                                    maximum=50,
+                                    step=1,
+                                    label=i18n("Mode collapse detection threshold (%)"),
+                                    value=25,
                                     interactive=True,
                                     visible=False
                                 )
@@ -2726,7 +2377,7 @@ def GradioSetup():
                                     }
                                 ),
                                 inputs=[if_retrain_collapse20],
-                                outputs=[collapse_threshold22],
+                                outputs=[collapse_threshold24],
                             )
                             if_stop_on_fit21.change(
                                 fn=lambda if_stop_on_fit21: (
@@ -2737,6 +2388,16 @@ def GradioSetup():
                                 ),
                                 inputs=[if_stop_on_fit21],
                                 outputs=[smoothness23],
+                            )
+                            if_stop_on_fit21.change(
+                                fn=lambda if_stop_on_fit21: (
+                                    {
+                                        "visible": if_stop_on_fit21,
+                                        "__type__": "update",
+                                    }
+                                ),
+                                inputs=[if_stop_on_fit21],
+                                outputs=[stop_on_fit_grace22],
                             )
                             sr2.change(
                                 change_sr2,
@@ -2778,8 +2439,9 @@ def GradioSetup():
                                 version19,
                                 if_retrain_collapse20,
                                 if_stop_on_fit21,
+                                stop_on_fit_grace22,
                                 smoothness23,
-                                collapse_threshold22
+                                collapse_threshold24
                             ],
                             [info3, butstop, but3],
                             api_name="train_start",

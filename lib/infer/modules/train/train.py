@@ -835,25 +835,25 @@ def train_and_evaluate(
                 logger.info(
                     f'Saving current fittest ckpt: {hps.name}_fittest:{savee(ckpt, hps.sample_rate, hps.if_f0, f"{hps.name}_fittest", epoch, hps.version, hps)}'
                 )
-        if epoch < 10:
-            message = f"Overtrain detection begins in {10 - epoch} epochs"
-        elif epoch == 10:
-            message = "Overtrain detection will begin next epoch"
+        stop_on_fit_countdown = math.floor(hps.stop_on_fit_grace / 4)
+        if epoch < stop_on_fit_countdown:
+            message = f"Over-train detection starts in {stop_on_fit_countdown - epoch} epochs..."
+        elif epoch == stop_on_fit_countdown:
+            message = "Over-train detection started"
         elif epoch - best["epoch"] == 0 and not continued:
-            message = f"New best epoch!! [e{epoch}]\n"
+            message = f"New best epoch at [e{epoch}]\n"
         else:
-            message = f'Last best epoch [e{best["epoch"]}] seen {epoch - best["epoch"]} epochs ago\n'
+            message = f'Last best epoch seen at [e{best["epoch"]}], {epoch - best["epoch"]} epochs ago\n'
         logger.info(message)
-        # if overtraining is detected, exit (idk what the 2333333 stands for but it seems like success ¯\_(ツ)_/¯)
-        if epoch - best["epoch"] >= 100:
-            shutil.copy2(f"logs/weights/{hps.name}_fittest.pth", os.path.join(hps.model_dir,f"{hps.name}_{epoch}.pth"))
+        if epoch - best["epoch"] >= hps.stop_on_fit_grace:
+            shutil.copy2(f"logs/weights/{hps.name}_fittest.pth", os.path.join(hps.model_dir, f"{hps.name}_{epoch}.pth"))
             logger.info(
-                f'No improvement found after epoch: [e{best["epoch"]}]. The program is closed.'
+                f'No improvement seen since epoch [e{best["epoch"]}]. Stop training.'
             )
             os._exit(2333333)
 
     if epoch >= hps.total_epoch and rank == 0:
-        logger.info("Training successfully completed, closing the program...")
+        logger.info("Training successfully completed.")
 
         if hasattr(net_g, "module"):
             ckpt = net_g.module.state_dict()
