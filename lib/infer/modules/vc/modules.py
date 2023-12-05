@@ -349,8 +349,6 @@ class VC:
                 .strip('"') \
                 .strip(" ") \
                 .replace("trained", "added")
-            elif file_index2:
-                file_index = file_index2
             else:
                 file_index = ""
 
