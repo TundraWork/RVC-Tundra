@@ -25,6 +25,6 @@ COPY . /workspace
 
 RUN <<-EOF
   set -x
-  pdm run python -m nltk.downloader all -d "$NLTK_DATA"
+  pdm run python -m nltk.downloader punkt -d "$NLTK_DATA"
   pdm run python lib/tools/model_fetcher.py
 EOF
