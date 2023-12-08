@@ -257,8 +257,7 @@ def use_tts(
                 f0_up_key=transpose,
                 f0_file=None,
                 f0_method=f0_method,
-                file_index="",
-                file_index2=index_path,
+                file_index=index_path,
                 index_rate=index_rate,
                 filter_radius=int(3),
                 resample_sr=int(0),
@@ -297,8 +296,7 @@ def use_tts(
                 f0_up_key=transpose,  # transpose for m to f and reverse 0 12
                 f0_file=None,
                 f0_method=f0_method,
-                file_index="",  # dir pwd?
-                file_index2=index_path,
+                file_index=index_path,
                 # file_big_npy1,
                 index_rate=index_rate,
                 filter_radius=int(3),
