@@ -1,33 +1,24 @@
-# syntax=docker/dockerfile:1
+# syntax=docker/dockerfile-upstream:1-labs
+FROM nvcr.io/nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu22.04
 
-FROM python:3.10-bullseye
+RUN <<-EOF
+  set -x
+  apt-get update
+  apt-get install python3-pip git build-essential python3-dev
+  pip install pdm --break-system-packages
+  mkdir /workspace
+  apt-get clean
+  rm -rf /var/lib/apt/lists/*
+EOF
 
-EXPOSE 7865
+WORKDIR /workspace
+COPY pyproject.toml pdm.lock pdm.toml /workspace
 
-WORKDIR /app
+RUN <<-EOF
+  set -x
+  pdm config python.use_venv false
+  pdm install
+EOF
 
-COPY assets/requirements/requirements.txt .
+COPY . /workspace
 
-RUN apt update && apt install -y -qq ffmpeg aria2 && apt clean
-
-RUN aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/lj1995/VoiceConversionWebUI/resolve/main/pretrained_v2/D40k.pth -d assets/pretrained_v2/ -o D40k.pth
-RUN aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/lj1995/VoiceConversionWebUI/resolve/main/pretrained_v2/G40k.pth -d assets/pretrained_v2/ -o G40k.pth
-RUN aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/lj1995/VoiceConversionWebUI/resolve/main/pretrained_v2/f0D40k.pth -d assets/pretrained_v2/ -o f0D40k.pth
-RUN aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/lj1995/VoiceConversionWebUI/resolve/main/pretrained_v2/f0G40k.pth -d assets/pretrained_v2/ -o f0G40k.pth
-
-RUN aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/lj1995/VoiceConversionWebUI/resolve/main/uvr5_weights/HP2-人声vocals+非人声instrumentals.pth -d assets/uvr5_weights/ -o HP2-人声vocals+非人声instrumentals.pth
-RUN aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/lj1995/VoiceConversionWebUI/resolve/main/uvr5_weights/HP5-主旋律人声vocals+其他instrumentals.pth -d assets/uvr5_weights/ -o HP5-主旋律人声vocals+其他instrumentals.pth
-
-RUN aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/lj1995/VoiceConversionWebUI/resolve/main/hubert_base.pt -d assets/hubert -o hubert_base.pt
-
-RUN aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/lj1995/VoiceConversionWebUI/resolve/main/rmvpe.pt -d assets/rmvpe -o rmvpe.pt
-
-RUN pip3 install --no-cache-dir -r requirements.txt
-
-COPY . .
-
-VOLUME [ "/app/logs/weights", "/app/opt" ]
-
-ENTRYPOINT [ "python3" ]
-
-CMD ["infer-web.py", "--pycmd", "python"]
