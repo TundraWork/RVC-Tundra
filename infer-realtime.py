@@ -45,7 +45,7 @@ if __name__ == "__main__":
     import librosa, torch, time, threading
     import torch.nn.functional as F
     import torchaudio.transforms as tat
-    from i18n import I18nAuto
+    from assets.i18n.i18n import I18nAuto
 
     i18n = I18nAuto()
     device = torch.device(
@@ -368,16 +368,20 @@ if __name__ == "__main__":
         def start_vc(self):
             torch.cuda.empty_cache()
             self.flag_vc = True
-            self.rvc = RVC(
-                self.config.pitch,
-                self.config.pth_path,
-                self.config.index_path,
-                self.config.index_rate,
-                self.config.n_cpu,
-                inp_q,
-                opt_q,
-                device,
-            )
+            try:
+                self.rvc = RVC(
+                    self.config.pitch,
+                    self.config.pth_path,
+                    self.config.index_path,
+                    self.config.index_rate,
+                    self.config.n_cpu,
+                    inp_q,
+                    opt_q,
+                    device,
+                )
+            except:
+                sg.popup(i18n("Failed to load model"))
+                return
             self.config.samplerate = self.rvc.tgt_sr
             self.config.crossfade_time = min(
                 self.config.crossfade_time, self.config.block_time
