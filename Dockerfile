@@ -1,5 +1,6 @@
 # syntax=docker/dockerfile-upstream:1-labs
 FROM nvcr.io/nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu22.04
+ENV NLTK_DATA /usr/share/nltk_data
 
 RUN <<-EOF
   set -x
@@ -22,4 +23,8 @@ EOF
 
 COPY . /workspace
 
-RUN pdm run python download.py
+RUN <<-EOF
+  set -x
+  pdm run python -m nltk.downloader all -d "$NLTK_DATA"
+  pdm run python lib/tools/model_fetcher.py
+EOF
