@@ -4,7 +4,7 @@ FROM nvcr.io/nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu22.04
 RUN <<-EOF
   set -x
   apt-get update
-  apt-get install python3-pip git build-essential python3-dev
+  apt-get install python-is-python3 python3-pip git build-essential python3-dev
   pip install pdm --break-system-packages
   mkdir /workspace
   apt-get clean
@@ -22,3 +22,4 @@ EOF
 
 COPY . /workspace
 
+RUN pdm run python download.py
