@@ -200,10 +200,9 @@ class VC:
         global total_time
         total_time = 0
         start_time = time.time()
-        if not sid:
-            return "You need to select a model", None
         if not input_audio_path1:
             return "You need to upload an audio", None
+        
         if (not os.path.exists(input_audio_path1)) and (not os.path.exists(os.path.join(now_dir, input_audio_path1))):
             return "Audio was not properly selected or doesn't exist", None
         if split_audio:
@@ -212,6 +211,7 @@ class VC:
             print("------")
             print(new_dir_path)
             if resultm == "Finish":
+
                 # Use the code from vc_multi to process the segmented audio
                 if rvc_globals.NotesOrHertz and f0_method != 'rmvpe':
                     f0_min = note_to_hz(note_min) if note_min else 50
@@ -583,8 +583,6 @@ class VC:
         note_max,
         f0_autotune,
     ):
-        if not sid:
-            return "You need to select a model", None
         if rvc_globals.NotesOrHertz and f0_method != 'rmvpe':
             f0_min = note_to_hz(note_min) if note_min else 50
             f0_max = note_to_hz(note_max) if note_max else 1100
