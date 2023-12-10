@@ -5,6 +5,8 @@ import torch
 import av
 import numpy as np
 from io import BytesIO
+from typing import TypedDict
+from typing_extensions import Unpack, NotRequired
 
 from lib.infer_pack.models import (
     SynthesizerTrnMs256NSFsid,
@@ -39,7 +41,14 @@ def load_cpt(filename):
   cpt['config'][-3] = cpt['weight']['emb_g.weight'].shape[0] # speakers count
   return cpt
 
-def load_voice_weight(cfg, device, filename):
+class VoiceWeightParams(TypedDict):
+  cpt: any
+  tgt_sr: int
+  if_f0: int
+  version: str
+  net_g: any
+
+def load_voice_weight(cfg, device, filename) -> VoiceWeightParams:
   cpt = load_cpt(filename)
   tgt_sr = cpt['config'][-1] # target sample rate
   if_f0 = cpt.get('f0', 1)
@@ -71,6 +80,16 @@ def import_audio_from_file(file):
     
     return np.frombuffer(out_bytes.getvalue(), np.float32).flatten()
 
+class RunParams(TypedDict):
+  f0_up_key: NotRequired[int]
+  index_rate: NotRequired[float]
+  filter_radius: NotRequired[int]
+  rms_mix_rate: NotRequired[float]
+  protect: NotRequired[float]
+  crepe_hop_length: NotRequired[int]
+  f0_min: NotRequired[int]
+  f0_max: NotRequired[int]
+
 class SimplePipeline:
   def __init__(self, voice_weight_file):
     cfg = Config()
@@ -79,35 +98,35 @@ class SimplePipeline:
         else ("mps" if torch.backends.mps.is_available()
         else "cpu")
     )
-    self.hubert_model = load_hubert(cfg)
-    self.voice_weight = load_voice_weight(cfg, device, voice_weight_file)
-    self.pipeline = Pipeline(self.voice_weight['tgt_sr'], cfg)
+    self._hubert_model = load_hubert(cfg)
+    self._voice_weight = load_voice_weight(cfg, device, voice_weight_file)
+    self._pipeline = Pipeline(self._voice_weight['tgt_sr'], cfg)
 
-  def run(self, input):
-    return self.pipeline.pipeline(
-      self.hubert_model, # model
-      self.voice_weight['net_g'],
+  def run(self, input, **kwargs: Unpack[RunParams]):
+    return self._pipeline.pipeline(
+      self._hubert_model, # model
+      self._voice_weight['net_g'],
       0, # sid
       input,
       '', # input_audio_path, don't make sense
       [0, 0, 0], # times
-      12, # f0_up_key
+      kwargs.get('f0_up_key', 0),
       'rmvpe+', # f0_method
       ',', # file_index
-      0.75, # index_rate,
-      self.voice_weight['if_f0'],
-      3, # filter_radius
-      self.voice_weight['tgt_sr'],
+      kwargs.get('index_rate', 0.75),
+      self._voice_weight['if_f0'],
+      kwargs.get('filter_radius', 3),
+      self._voice_weight['tgt_sr'],
       0, # resample_sr
-      0.25, # rms_mix_rate
-      self.voice_weight['version'],
-      0.33, # protect
-      120, # crepe_hop_length
+      kwargs.get('rms_mix_rate', 0.25),
+      self._voice_weight['version'],
+      kwargs.get('protect', 0.33),
+      kwargs.get('crepe_hop_length', 120),
       False, # f0_autotune
       None, # f0_file
-      f0_min=50,
-      f0_max=1100
+      f0_min=kwargs.get('f0_min', 50),
+      f0_max=kwargs.get('f0_max', 1100)
     )
 
   def get_target_sample_rate(self):
-    return self.voice_weight['tgt_sr']
+    return self._voice_weight['tgt_sr']
