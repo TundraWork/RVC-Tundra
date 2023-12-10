@@ -11,7 +11,6 @@ import logging
 import shutil
 import threading
 from assets.configs.config import Config
-import lib.globals.globals as rvc_globals
 
 import lib.tools.model_fetcher as model_fetcher
 import math as math
@@ -1773,9 +1772,9 @@ def GradioSetup():
                                 index_rate1 = gr.Slider(
                                     minimum=0,
                                     maximum=1,
-                                    label=i18n("Feature extraction ratio"),
+                                    label=i18n("Feature index search ratio"),
                                     info=i18n(
-                                        "The ratio of feature to be extracted from the model. 0.0 = ?, 1.0 = all"
+                                        "The ratio of feature from Faiss index search. 0.0 = do not use index search, 1.0 = all"
                                     ),
                                     value=0.75,
                                     interactive=True,
