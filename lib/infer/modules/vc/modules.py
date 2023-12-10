@@ -131,8 +131,8 @@ class VC:
             )
         #person = f'{os.getenv("weight_root")}/{sid}'
         person = f'{sid}'
-        #logger.info(f"Loading: {person}")
-        logger.info(f"Loading...")
+        logger.info(f"Loading: {person}")
+        # logger.info(f"Loading...")
         self.cpt = torch.load(person, map_location="cpu")
         self.tgt_sr = self.cpt["config"][-1]
         self.cpt["config"][-3] = self.cpt["weight"]["emb_g.weight"].shape[0]  # n_spk

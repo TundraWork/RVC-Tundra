@@ -3,7 +3,7 @@ FROM nvcr.io/nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu22.04
 ENV NLTK_DATA /usr/share/nltk_data
 
 RUN apt-get update && \
-  apt-get install -y python-is-python3 python3-pip git build-essential python3-dev && \
+  apt-get install -y python-is-python3 python3-pip git build-essential python3-dev ffmpeg --no-install-recommends && \
   pip install pdm && \
   pdm config python.use_venv false && \
   mkdir /workspace && \
